@@ -17,6 +17,8 @@ import {
 	ACCOUNT_RECOVERY_SETTINGS_DELETE,
 	ACCOUNT_RECOVERY_SETTINGS_DELETE_SUCCESS,
 	ACCOUNT_RECOVERY_SETTINGS_DELETE_FAILED,
+
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION,
 } from 'state/action-types';
 
 import { dummyData, dummyNewPhone, dummyNewEmail } from './test-data';
@@ -58,20 +60,22 @@ describe( '#account-recovery/settings reducer:', () => {
 	} );
 
 	it( 'ACCOUNT_RECOVERY_SETTINGS_UPDATE_SUCCESS action with phone target should update the phone field', () => {
+		const newPhoneValue = {
+			countryCode: dummyNewPhone.country_code,
+			countryNumericCode: dummyNewPhone.country_numeric_code,
+			number: dummyNewPhone.number,
+			numberFull: dummyNewPhone.number_full,
+		};
+
 		const state = reducer( initState, {
 			type: ACCOUNT_RECOVERY_SETTINGS_UPDATE_SUCCESS,
 			target: 'phone',
-			value: dummyNewPhone,
+			value: newPhoneValue,
 		} );
 
 		assert.deepEqual( state.data, {
 			...initState.data,
-			phone: {
-				countryCode: dummyNewPhone.country_code,
-				countryNumericCode: dummyNewPhone.country_numeric_code,
-				number: dummyNewPhone.number,
-				numberFull: dummyNewPhone.number_full,
-			},
+			phone: newPhoneValue,
 		} );
 	} );
 
@@ -123,6 +127,15 @@ describe( '#account-recovery/settings reducer:', () => {
 		assert.isFalse( state.isUpdating[ arbitraryTargetName ] );
 	} );
 
+	it( 'ACCOUNT_RECOVERY_SETTINGS_UPDATE_SUCCESS action should set the hasSentValidation sub field', () => {
+		const state = reducer( undefined, {
+			type: ACCOUNT_RECOVERY_SETTINGS_UPDATE_SUCCESS,
+			target: arbitraryTargetName,
+		} );
+
+		assert.isTrue( state.hasSentValidation[ arbitraryTargetName ] );
+	} );
+
 	it( 'ACCOUNT_RECOVERY_SETTINGS_UPDATE_FAILED action should unset the isUpdating sub field', () => {
 		const state = reducer( undefined, {
 			type: ACCOUNT_RECOVERY_SETTINGS_UPDATE_FAILED,
@@ -157,5 +170,14 @@ describe( '#account-recovery/settings reducer:', () => {
 		} );
 
 		assert.isFalse( state.isDeleting[ arbitraryTargetName ] );
+	} );
+
+	it( 'ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION action should set hasSentValidation sub field', () => {
+		const state = reducer( undefined, {
+			type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION,
+			target: arbitraryTargetName,
+		} );
+
+		assert.isTrue( state.hasSentValidation[ arbitraryTargetName ] );
 	} );
 } );

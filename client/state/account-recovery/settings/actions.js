@@ -15,6 +15,10 @@ import {
 	ACCOUNT_RECOVERY_SETTINGS_DELETE,
 	ACCOUNT_RECOVERY_SETTINGS_DELETE_SUCCESS,
 	ACCOUNT_RECOVERY_SETTINGS_DELETE_FAILED,
+
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION,
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_SUCCESS,
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_FAILED,
 } from 'state/action-types';
 
 const TARGET_PHONE = 'phone';
@@ -72,15 +76,15 @@ export const updateAccountRecoveryPhoneSuccess = ( phone ) => updateSuccessActio
 
 export const updateAccountRecoveryPhoneFailed = ( error ) => updateFailedAction( TARGET_PHONE, error );
 
-export const updateAccountRecoveryPhone = ( countryCode, number ) => ( dispatch ) => {
+export const updateAccountRecoveryPhone = ( newPhone ) => ( dispatch ) => {
 	dispatch( {
 		type: ACCOUNT_RECOVERY_SETTINGS_UPDATE,
 		target: TARGET_PHONE,
 	} );
 
-	return wpcom.undocumented().me().updateAccountRecoveryPhone( countryCode, number )
-		.then( ( { phone } ) =>
-			dispatch( updateAccountRecoveryPhoneSuccess( phone ) )
+	return wpcom.undocumented().me().updateAccountRecoveryPhone( newPhone.countryCode, newPhone.number )
+		.then( () =>
+			dispatch( updateAccountRecoveryPhoneSuccess( newPhone ) )
 		).catch( ( error ) =>
 			dispatch( updateAccountRecoveryPhoneFailed( error ) )
 		);
@@ -115,8 +119,8 @@ export const updateAccountRecoveryEmail = ( newEmail ) => ( dispatch ) => {
 	} );
 
 	return wpcom.undocumented().me().updateAccountRecoveryEmail( newEmail )
-		.then( ( { email } ) =>
-			dispatch( updateAccountRecoveryEmailSuccess( email ) )
+		.then( () =>
+			dispatch( updateAccountRecoveryEmailSuccess( newEmail ) )
 		).catch( ( error ) =>
 			dispatch( updateAccountRecoveryEmailFailed( error ) )
 		);
@@ -137,5 +141,34 @@ export const deleteAccountRecoveryEmail = () => ( dispatch ) => {
 			dispatch( deleteAccountRecoveryEmailSuccess() )
 		).catch( ( error ) =>
 			dispatch( deleteAccountRecoveryEmailFailed( error ) )
+		);
+};
+
+export const resendAccountRecoveryEmailValidationSuccess = () => {
+	return {
+		type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_SUCCESS,
+		target: 'email',
+	};
+};
+
+export const resendAccountRecoveryEmailValidationFailed = ( error ) => {
+	return {
+		type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_FAILED,
+		target: 'email',
+		error,
+	};
+};
+
+export const resendAccountRecoveryEmailValidation = () => ( dispatch ) => {
+	dispatch( {
+		type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION,
+		target: TARGET_EMAIL,
+	} );
+
+	return wpcom.undocumented().me().newValidationAccountRecoveryEmail()
+		.then( () =>
+			dispatch( resendAccountRecoveryEmailValidationSuccess() )
+		).catch( ( error ) =>
+			dispatch( resendAccountRecoveryEmailValidationFailed( error ) )
 		);
 };

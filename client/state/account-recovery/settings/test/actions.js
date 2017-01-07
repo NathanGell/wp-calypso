@@ -29,6 +29,10 @@ import {
 	deleteAccountRecoveryEmail,
 	deleteAccountRecoveryEmailSuccess,
 	deleteAccountRecoveryEmailFailed,
+
+	resendAccountRecoveryEmailValidation,
+	resendAccountRecoveryEmailValidationSuccess,
+	resendAccountRecoveryEmailValidationFailed,
 } from '../actions';
 
 import {
@@ -43,6 +47,10 @@ import {
 	ACCOUNT_RECOVERY_SETTINGS_DELETE,
 	ACCOUNT_RECOVERY_SETTINGS_DELETE_SUCCESS,
 	ACCOUNT_RECOVERY_SETTINGS_DELETE_FAILED,
+
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION,
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_SUCCESS,
+	ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_FAILED,
 } from 'state/action-types';
 
 import { dummyData, dummyNewPhone, dummyNewEmail } from './test-data';
@@ -99,15 +107,22 @@ describe( 'account-recovery actions', () => {
 		} );
 	} );
 
+	const newPhoneValue = {
+		countryCode: dummyNewPhone.country_code,
+		countryNumericCode: dummyNewPhone.country_numeric_code,
+		number: dummyNewPhone.number,
+		numberFull: dummyNewPhone.number_full,
+	};
+
 	generateSuccessAndFailedTestsForThunk( {
 		testBaseName: '#updateAccountRecoveryPhone',
 		nockSettings: {
 			method: 'post',
 			endpoint: '/rest/v1.1/me/account-recovery/phone',
-			successResponse: { phone: dummyNewPhone },
+			successResponse: { success: true },
 			errorResponse: errorResponse,
 		},
-		thunk: () => updateAccountRecoveryPhone( dummyNewPhone.country_code, dummyNewPhone.number )( spy ),
+		thunk: () => updateAccountRecoveryPhone( newPhoneValue )( spy ),
 		preCondition: () =>
 			assert( spy.calledWith( {
 				type: ACCOUNT_RECOVERY_SETTINGS_UPDATE,
@@ -117,7 +132,7 @@ describe( 'account-recovery actions', () => {
 			assert( spy.calledWith( {
 				type: ACCOUNT_RECOVERY_SETTINGS_UPDATE_SUCCESS,
 				target: 'phone',
-				value: dummyNewPhone,
+				value: newPhoneValue,
 			} ) ),
 		postConditionFailed: () =>
 			assert( spy.calledWith( sinon.match( {
@@ -304,5 +319,49 @@ describe( 'account-recovery actions', () => {
 				error: errorResponse,
 			} );
 		} );
+	} );
+
+	describe( '#resendAccountRecoveryEmailValidationSuccess', () => {
+		const action = resendAccountRecoveryEmailValidationSuccess();
+		assert.deepEqual( action, {
+			type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_SUCCESS,
+			target: 'email',
+		} );
+	} );
+
+	describe( '#resendAccountRecoveryEmailValidationFailed', () => {
+		const action = resendAccountRecoveryEmailValidationFailed( errorResponse );
+		assert.deepEqual( action, {
+			type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_FAILED,
+			target: 'email',
+			error: errorResponse,
+		} );
+	} );
+
+	generateSuccessAndFailedTestsForThunk( {
+		testBaseName: '#resendAccountRecoveryEmailValidation',
+		nockSettings: {
+			method: 'post',
+			endpoint: '/rest/v1.1/me/account-recovery/email/validation/new',
+			successResponse: { success: true },
+			errorResponse: errorResponse,
+		},
+		thunk: () => resendAccountRecoveryEmailValidation()( spy ),
+		preCondition: () =>
+			assert( spy.calledWith( {
+				type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION,
+				target: 'email',
+			} ) ),
+		postConditionSuccess: () =>
+			assert( spy.calledWith( {
+				type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_SUCCESS,
+				target: 'email',
+			} ) ),
+		postConditionFailed: () =>
+			assert( spy.calledWith( sinon.match( {
+				type: ACCOUNT_RECOVERY_SETTINGS_RESEND_VALIDATION_FAILED,
+				target: 'email',
+				error: errorResponse,
+			} ) ) ),
 	} );
 } );
